@@ -931,13 +931,18 @@ function openThread(threadId) {
         </div>
       </div>
       <div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;margin-bottom:${cleanDraft?'12px':'0'}">${cleanBody}${e.body.length>400?'...':''}</div>
-      ${cleanDraft ? `
+      ${cleanDraft && label === 'sent' ? `
+        <div style="background:rgba(76,175,125,.06);border:1px solid rgba(76,175,125,.25);border-radius:8px;padding:12px 14px;margin-top:8px">
+          <div style="font-size:10px;color:#2e7d5a;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">✓ Sent reply</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-wrap">${cleanDraft}${cleanDraft.length>=300?'...':''}</div>
+        </div>` : ''}
+      ${cleanDraft && label !== 'sent' ? `
         <div style="background:rgba(201,169,110,.06);border:1px solid rgba(201,169,110,.2);border-radius:8px;padding:12px 14px;margin-top:8px">
           <div style="font-size:10px;color:var(--accent-dark);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Draft reply</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-wrap">${cleanDraft}${cleanDraft.length>=300?'...':''}</div>
           <div style="margin-top:10px;display:flex;gap:8px">
             <button class="action-btn" onclick="closeThreadModal();openModalByIndex(${idx})">Edit draft</button>
-            ${label !== 'sent' ? `<button class="action-btn send" onclick="closeThreadModal();quickSendByIndex(${idx})">✓ Send</button>` : ''}
+            <button class="action-btn send" onclick="closeThreadModal();quickSendByIndex(${idx})">✓ Send</button>
           </div>
         </div>` : ''}
     </div>`;
