@@ -428,15 +428,15 @@
         <table style="table-layout:fixed;width:100%">
           <colgroup>
             <col style="width:36px">
-            <col style="width:35%">
-            <col style="width:11%">
-            <col style="width:22%">
-            <col style="width:10%">
-            <col style="width:16%">
+            <col style="width:30%">
+            <col style="width:12%">
+            <col style="width:25%">
+            <col style="width:13%">
+            <col style="width:18%">
           </colgroup>
           <thead>
             <tr>
-              <th style="width:36px"><input type="checkbox" id="check-all" onchange="toggleAll(this)" style="cursor:pointer"></th>
+              <th><input type="checkbox" id="check-all" onchange="toggleAll(this)" style="cursor:pointer"></th>
               <th>Customer</th>
               <th>Type</th>
               <th>Draft reply</th>
@@ -1246,12 +1246,15 @@ function renderEmails() {
         seenThreads.add(e.threadId);
         const threadEmails = filtered.filter(x => x.threadId === e.threadId)
           .sort((a,b) => new Date(a.rawTime) - new Date(b.rawTime)); // oldest first
-        const oldest = threadEmails[0];
         const newest = threadEmails[threadEmails.length - 1];
+        // Use full emails array for oldest so type/subject aren't affected by active filters
+        const allInThread = emails.filter(x => x.threadId === e.threadId)
+          .sort((a,b) => new Date(a.rawTime) - new Date(b.rawTime));
+        const oldest = allInThread[0] || threadEmails[0];
         const rep = {
-          ...newest,                          // base: email mới nhất (time, label, status)
-          subject: oldest.subject,            // subject: email đầu tiên
-          type: oldest.type,                  // type: email đầu tiên
+          ...newest,                          // base: newest (time, label, status)
+          subject: oldest.subject,            // subject from true oldest email
+          type: oldest.type,                  // type from true oldest email
           draft: newest.draft,                // draft: email mới nhất
           name: oldest.name,
           email: oldest.email,
