@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PMHVibes · Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --surface: #ffffff;
+    --surface2: #f2f0ec;
+    --border: #e8e4de;
+    --border2: #d8d3cb;
+    --text: #1a1814;
+    --muted: #8c8880;
+    --muted2: #b5b0a8;
+    --accent: #c9a96e;
+    --accent-dark: #a8854a;
+    --accent2: #e05c5c;
+    --accent3: #e8b84b;
+    --accent4: #4a90c4;
+    --accent5: #7b68b5;
+    --green: #4caf7d;
+    --radius: 12px;
+    --sidebar: 240px;
+    --shadow: 0 1px 3px rgba(26,24,20,.06), 0 4px 16px rgba(26,24,20,.04);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; min-height: 100vh; display: flex; }
+
+  /* ---- LOGIN ---- */
+  .login-screen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+  }
+  .login-screen.hidden { display: none; }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 48px 44px; width: 400px;
+    box-shadow: var(--shadow);
+  }
+  .login-brand { display: flex; align-items: baseline; gap: 8px; margin-bottom: 32px; }
+  .login-logo { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 26px; color: var(--text); letter-spacing: -.5px; }
+  .login-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-bottom: 4px; }
+  .login-tagline { font-size: 12px; color: var(--muted); margin-top: -24px; margin-bottom: 32px; letter-spacing: .02em; }
+  .login-label { font-size: 11px; color: var(--muted); letter-spacing: .06em; margin-bottom: 6px; display: block; text-transform: uppercase; }
+  .login-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+    transition: border-color .15s; margin-bottom: 16px;
+  }
+  .login-input:focus { border-color: var(--accent); background: var(--surface); }
+  .login-btn {
+    width: 100%; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 500;
+    cursor: pointer; background: var(--text); color: var(--bg); border: none;
+    font-family: 'DM Sans', sans-serif; transition: all .2s; margin-top: 4px;
+    letter-spacing: .02em;
+  }
+  .login-btn:hover { background: #2d2a24; }
+  .login-error { font-size: 12px; color: var(--accent2); margin-bottom: 12px; display: none; }
+  .login-error.show { display: block; }
+  .login-footer { font-size: 11px; color: var(--muted2); text-align: center; margin-top: 24px; }
+
+  /* ---- ACCOUNT MODAL ---- */
+  .acct-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .acct-row:last-child { border-bottom: none; }
+  .acct-avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--surface2);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: var(--accent); flex-shrink: 0;
+  }
+  .acct-info { flex: 1; }
+  .acct-name { font-size: 13px; font-weight: 500; }
+  .acct-role { font-size: 11px; color: var(--muted); }
+  .acct-del { background: none; border: 1px solid transparent; border-radius: 6px; color: var(--muted2); cursor: pointer; padding: 4px 8px; font-size: 12px; transition: all .15s; }
+  .acct-del:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* ---- SIDEBAR ---- */
+  .sidebar {
+    width: var(--sidebar); background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+  }
+  .logo { padding: 28px 24px 24px; border-bottom: 1px solid var(--border); }
+  .logo-text {
+    font-family: 'Playfair Display', serif; font-weight: 600;
+    font-size: 20px; color: var(--text); letter-spacing: -.3px;
+  }
+  .logo-sub { font-size: 10px; color: var(--muted2); margin-top: 3px; letter-spacing: .04em; }
+  .nav { padding: 20px 14px; flex: 1; overflow-y: auto; }
+  .nav-section {
+    font-size: 9px; color: var(--muted2); letter-spacing: .12em;
+    text-transform: uppercase; padding: 0 10px; margin: 20px 0 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    cursor: pointer; color: var(--muted);
+    font-size: 13px; font-weight: 400;
+    transition: all .15s; margin-bottom: 2px;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--text); background: var(--surface2); font-weight: 500; }
+  .nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+  .nav-item .badge {
+    margin-left: auto; font-size: 10px; font-family: 'DM Mono', monospace;
+    background: var(--accent2); color: #fff; padding: 1px 7px;
+    border-radius: 20px; font-weight: 500;
+  }
+  .nav-item .badge.unread { background: var(--accent); color: #fff; }
+  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+  .user-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .user-avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--surface2);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: var(--accent); flex-shrink: 0;
+  }
+  .user-name { font-size: 13px; font-weight: 500; }
+  .user-role { font-size: 10px; color: var(--muted2); }
+  .footer-btns { display: flex; gap: 6px; }
+  .footer-btn {
+    flex: 1; padding: 7px 8px; border-radius: 8px; font-size: 11px; cursor: pointer;
+    border: 1px solid var(--border); background: transparent; color: var(--muted);
+    font-family: 'DM Sans', sans-serif; transition: all .15s; text-align: center;
+  }
+  .footer-btn:hover { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+  .footer-btn.danger:hover { border-color: var(--accent2); color: var(--accent2); }
+  .status-line { font-size: 10px; color: var(--muted2); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; }
+
+  /* ---- MAIN ---- */
+  .main { margin-left: var(--sidebar); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar {
+    padding: 16px 32px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); position: sticky; top: 0; z-index: 50;
+  }
+  .page-title { font-family: 'Playfair Display', serif; font-weight: 500; font-size: 20px; color: var(--text); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .btn {
+    padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+    color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all .15s;
+  }
+  .btn:hover { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+  .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .btn-primary:hover { background: #2d2a24; color: var(--bg); }
+  .content { padding: 32px; flex: 1; }
+
+  /* ---- PAGES ---- */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ---- STATS ---- */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 22px;
+    transition: all .2s; cursor: default;
+  }
+  .stat-card:hover { border-color: var(--border2); box-shadow: var(--shadow); }
+  .stat-label { font-size: 10px; color: var(--muted2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 400; color: var(--text); }
+  .stat-sub { font-size: 11px; color: var(--muted2); margin-top: 4px; }
+  .stat-accent { color: var(--accent); }
+  .stat-red { color: var(--accent2); }
+  .stat-blue { color: var(--accent4); }
+
+  /* ---- TABLE ---- */
+  .table-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+  }
+  .table-header {
+    padding: 16px 22px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface);
+  }
+  .table-title { font-family: 'Playfair Display', serif; font-weight: 500; font-size: 15px; }
+  .filters { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 5px 14px; border-radius: 20px; font-size: 11px;
+    cursor: pointer; border: 1px solid var(--border); background: transparent;
+    color: var(--muted); transition: all .15s; font-family: 'DM Sans', sans-serif;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent-dark); background: rgba(201,169,110,.06); }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent-dark); background: rgba(201,169,110,.1); font-weight: 500; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-size: 9px; color: var(--muted2); text-align: left;
+    padding: 10px 22px; border-bottom: 1px solid var(--border);
+    letter-spacing: .1em; text-transform: uppercase; font-weight: 500;
+    background: var(--bg);
+  }
+  td { padding: 15px 22px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #faf9f7; }
+  .pill {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 10px; font-weight: 500; letter-spacing: .02em;
+  }
+  .pill-unread  { background:rgba(201,169,110,.12); color:var(--accent-dark); border:1px solid rgba(201,169,110,.3); }
+  .pill-tracking { background:rgba(74,144,196,.12); color:#2e6a96; border:1px solid rgba(74,144,196,.3); }
+  .pill-sent-lbl { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+  input[type="checkbox"] { width:15px; height:15px; accent-color:var(--accent); cursor:pointer; }
+  tr.selected td { background:#faf7f2 !important; }
+  .pill-reviewed { background: rgba(74,144,196,.1); color: #2e6a96; border: 1px solid rgba(74,144,196,.25); }
+  .pill-sent { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .pill-urgent { background: rgba(224,92,92,.1); color: #b83c3c; border: 1px solid rgba(224,92,92,.25); }
+  .from-cell { font-weight: 500; color: var(--text); }
+  .from-sub { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+  .from-account { font-size: 10px; color: var(--accent); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .subject-cell { max-width: 200px; line-height: 1.5; }
+  .draft-cell { max-width: 220px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+  .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .action-btn {
+    padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--muted);
+    font-family: 'DM Sans', sans-serif; transition: all .15s; white-space: nowrap; font-weight: 500;
+  }
+  .action-btn:hover { border-color: var(--accent4); color: var(--accent4); background: rgba(74,144,196,.06); }
+  .action-btn.send { border-color: rgba(76,175,125,.4); color: #2e7d5a; background: rgba(76,175,125,.06); }
+  .action-btn.send:hover { background: rgba(76,175,125,.12); }
+
+  /* ---- MODAL ---- */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,24,20,.4); z-index: 200;
+    align-items: center; justify-content: center; backdrop-filter: blur(2px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; width: 640px; max-width: 95vw;
+    max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(26,24,20,.12);
+  }
+  .modal-head {
+    padding: 22px 28px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .modal-title { font-family: 'Playfair Display', serif; font-weight: 500; font-size: 17px; }
+  .modal-close { background: none; border: none; color: var(--muted2); cursor: pointer; font-size: 22px; line-height: 1; transition: color .15s; }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 28px; }
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 10px; color: var(--muted2); margin-bottom: 6px; letter-spacing: .08em; text-transform: uppercase; }
+  .field-val { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 13px; line-height: 1.7; color: var(--text); }
+  textarea.field-val { width: 100%; resize: vertical; min-height: 160px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color .15s; }
+  textarea.field-val:focus { border-color: var(--accent); background: var(--surface); }
+  .modal-foot { padding: 18px 28px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ---- COMING SOON ---- */
+  .coming-soon {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 400px; color: var(--muted2); gap: 14px;
+  }
+  .cs-icon { font-size: 36px; opacity: .25; }
+  .coming-soon h3 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--text); font-weight: 400; }
+  .coming-soon p { font-size: 13px; text-align: center; max-width: 340px; line-height: 1.7; }
+  .cs-badge { font-size: 10px; padding: 4px 14px; border-radius: 20px; border: 1px solid var(--border2); color: var(--muted2); letter-spacing: .06em; text-transform: uppercase; }
+
+  /* ---- SEARCH BAR ---- */
+  .search-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+  .search-input {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none;
+    transition: border-color .15s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted2); }
+  select.search-input { cursor: pointer; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-text">PMHVibes</div>
+    <div class="logo-sub">Business Dashboard</div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Customer Support</div>
+    <div class="nav-item active" id="nav-email" onclick="goto('email', this)">
+      <span class="nav-icon">✉</span> Email Support
+      <span class="badge unread" id="badge-email" style="display:none">0</span>
+    </div>
+    <div class="nav-item" id="nav-email-all" onclick="setEmailFolder('all',this)" style="padding-left:28px;font-size:12px">
+      <span class="nav-icon" style="font-size:12px">📥</span> All
+    </div>
+    <div class="nav-item" id="nav-email-tracking" onclick="setEmailFolder('tracking',this)" style="padding-left:28px;font-size:12px">
+      <span class="nav-icon" style="font-size:12px">📦</span> Tracking
+    </div>
+    <div class="nav-item" id="nav-email-cancel" onclick="setEmailFolder('cancel',this)" style="padding-left:28px;font-size:12px">
+      <span class="nav-icon" style="font-size:12px">🚫</span> Cancel Order
+    </div>
+    <div class="nav-item" id="nav-email-update" onclick="setEmailFolder('update',this)" style="padding-left:28px;font-size:12px">
+      <span class="nav-icon" style="font-size:12px">✏️</span> Update Order
+    </div>
+    <div class="nav-item" id="nav-email-refund" onclick="setEmailFolder('refund',this)" style="padding-left:28px;font-size:12px">
+      <span class="nav-icon" style="font-size:12px">⚠️</span> Refund/Dispute
+    </div>
+    <div class="nav-item" id="nav-email-general" onclick="setEmailFolder('general',this)" style="padding-left:28px;font-size:12px">
+      <span class="nav-icon" style="font-size:12px">💬</span> General
+    </div>
+    <div class="nav-item" id="nav-email-trash" onclick="setEmailFolder('trash',this)" style="padding-left:28px;font-size:12px">
+      <span class="nav-icon" style="font-size:12px">🗑</span> Trash
+    </div>
+    <div class="nav-item" id="nav-templates" onclick="goto('templates', this)" style="padding-left:28px;font-size:12px">
+      <span class="nav-icon" style="font-size:13px">📋</span> Email Templates
+    </div>
+    <div class="nav-item" id="nav-facebook" onclick="goto('facebook', this)">
+      <span class="nav-icon">💬</span> Facebook Support
+    </div>
+    <div class="nav-section">Operations</div>
+    <div class="nav-item" id="nav-orders" onclick="goto('orders', this)">
+      <span class="nav-icon">📦</span> Orders & Profit
+    </div>
+    <div class="nav-item" id="nav-ads" onclick="goto('ads', this)">
+      <span class="nav-icon">📣</span> Ad Campaigns
+    </div>
+    <div class="nav-section">Research</div>
+    <div class="nav-item" id="nav-spy" onclick="goto('spy', this)">
+      <span class="nav-icon">🔍</span> Product Spy
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar" id="sidebar-avatar">--</div>
+      <div>
+        <div class="user-name" id="sidebar-name">--</div>
+        <div class="user-role" id="sidebar-role">--</div>
+      </div>
+    </div>
+    <div class="footer-btns">
+      <button class="footer-btn" onclick="openAcctModal()" id="btn-manage-acct">Accounts</button>
+      <button class="footer-btn danger" onclick="doLogout()">Sign out</button>
+    </div>
+    <div class="status-line">
+      <span class="status-dot"></span> Auto-refresh every 5 min
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">Email Support</div>
+    <div class="topbar-right">
+      <button class="btn" onclick="syncEmails()">↻ Sync now</button>
+      <button class="btn" onclick="openSettingsModal()">⚙ Settings</button>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add email</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- EMAIL PAGE -->
+    <div class="page active" id="page-email">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total emails</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-sub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Unresolved</div>
+          <div class="stat-value stat-accent" id="stat-new">0</div>
+          <div class="stat-sub">Needs review</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Reviewed</div>
+          <div class="stat-value stat-blue" id="stat-reviewed">0</div>
+          <div class="stat-sub">Ready to send</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sent</div>
+          <div class="stat-value" id="stat-sent">0</div>
+          <div class="stat-sub">Completed</div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input class="search-input" placeholder="Search emails, customers..." id="search-input" oninput="filterEmails()">
+        <select class="search-input" style="max-width:160px" id="filter-account" onchange="filterEmails()">
+          <option value="">All inboxes</option>
+        </select>
+        <select class="search-input" style="max-width:160px" id="filter-type" onchange="filterEmails()">
+          <option value="">All types</option>
+          <option value="Shipping">Shipping</option>
+          <option value="Product Problems">Product Problems</option>
+          <option value="Refund/Dispute">Refund/Dispute</option>
+          <option value="General">General</option>
+          <option value="Update Order">Update Order</option>
+          <option value="Cancel Order">Cancel Order</option>
+        </select>
+        <select class="search-input" style="max-width:140px" id="filter-status" onchange="filterEmails()">
+          <option value="">All statuses</option>
+          <option value="new">New</option>
+          <option value="sent">Sent</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="table-title">Inbox</span>
+            <div id="bulk-bar" style="display:none;align-items:center;gap:8px">
+              <span style="font-size:12px;color:var(--muted)" id="bulk-count">0 selected</span>
+              <button class="action-btn send" onclick="bulkSend()">✓ Send all</button>
+              <button class="action-btn" onclick="bulkSetLabel('tracking')" style="border-color:#4a90c4;color:#4a90c4">Mark Tracking</button>
+              <button class="action-btn" onclick="bulkSetLabel('unread')" style="border-color:#c9a96e;color:#a8854a">Mark Unread</button>
+              <button class="action-btn" onclick="bulkDelete()" style="border-color:#e05c5c;color:#e05c5c">🗑 Delete</button>
+              <button class="action-btn" onclick="clearSelection()" style="color:var(--muted2)">✕ Clear</button>
+            </div>
+          </div>
+          <div class="filters">
+            <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+            <button class="filter-btn" onclick="setFilter('unread',this)">Unread</button>
+            <button class="filter-btn" onclick="setFilter('tracking',this)">Tracking</button>
+            <button class="filter-btn" onclick="setFilter('sent',this)">Sent</button>
+          </div>
+        </div>
+        <table style="table-layout:fixed;width:100%">
+          <colgroup>
+            <col style="width:36px">
+            <col style="width:35%">
+            <col style="width:11%">
+            <col style="width:22%">
+            <col style="width:10%">
+            <col style="width:16%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox" id="check-all" onchange="toggleAll(this)" style="cursor:pointer"></th>
+              <th>Customer</th>
+              <th>Type</th>
+              <th>Draft reply</th>
+              <th>Label</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="email-tbody"></tbody>
+        </table>
+        <div id="pagination" style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border)">
+          <div id="page-info" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace"></div>
+          <div style="display:flex;gap:6px" id="page-btns"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEMPLATES PAGE -->
+    <div class="page" id="page-templates">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:500;margin-bottom:4px">Email Templates</div>
+          <div style="font-size:12px;color:var(--muted2)">Save frequently used replies — select them in draft editor</div>
+        </div>
+        <button class="btn btn-primary" onclick="openTplModal()">+ New template</button>
+      </div>
+      <div id="tpl-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
+    </div>
+
+    <!-- ORDERS PAGE -->
+    <div class="page" id="page-orders">
+      <div class="coming-soon">
+        <div class="cs-icon">📦</div>
+        <h3>Orders & Profit</h3>
+        <p>Order management, revenue tracking, ad costs & fulfillment margin — coming next.</p>
+        <span class="cs-badge">COMING SOON</span>
+      </div>
+    </div>
+
+    <!-- FACEBOOK PAGE -->
+    <div class="page" id="page-facebook">
+      <div class="coming-soon">
+        <div class="cs-icon">💬</div>
+        <h3>Facebook Support</h3>
+        <p>Manage Facebook comments and DMs, AI drafts replies automatically, review before sending.</p>
+        <span class="cs-badge">COMING SOON</span>
+      </div>
+    </div>
+
+    <!-- SPY PAGE -->
+    <div class="page" id="page-spy">
+      <div class="coming-soon">
+        <div class="cs-icon">🔍</div>
+        <h3>Competitor Research</h3>
+        <p>Monitor competitor products, evaluate potential, and get redesign suggestions.</p>
+        <span class="cs-badge">COMING SOON</span>
+      </div>
+    </div>
+
+    <!-- ADS PAGE -->
+    <div class="page" id="page-ads">
+      <div class="coming-soon">
+        <div class="cs-icon">📣</div>
+        <h3>Ad Campaigns</h3>
+        <p>Manage and automate Facebook ad campaigns from existing content.</p>
+        <span class="cs-badge">COMING SOON</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal" onclick="closeSettingsModal(event)">
+  <div class="modal" style="width:500px">
+    <div class="modal-head">
+      <span class="modal-title">⚙ Connect Google Sheets</span>
+      <button class="modal-close" onclick="closeSettingsModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(116,185,255,.08);border:1px solid rgba(116,185,255,.2);border-radius:8px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--accent4);line-height:1.7">
+        Enter your credentials to connect the dashboard to Google Sheets. Your API Key is stored locally in your browser only.
+      </div>
+      <div class="field">
+        <label>GOOGLE SHEETS ID</label>
+        <input class="login-input" id="set-sheet-id" placeholder="13NG8s52AZcS8YS9w7jSu4N9..." style="width:100%;margin-bottom:0">
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace">Get from URL: docs.google.com/spreadsheets/d/<b style="color:var(--accent4)">[this ID]</b>/edit</div>
+      </div>
+      <div class="field" style="margin-top:16px">
+        <label>GOOGLE API KEY</label>
+        <input class="login-input" id="set-api-key" type="password" placeholder="AIzaSy..." style="width:100%;margin-bottom:0">
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace">Create at: console.cloud.google.com → Credentials</div>
+      </div>
+      <div class="field" style="margin-top:16px">
+        <label>APPS SCRIPT URL (update status)</label>
+        <input class="login-input" id="set-script-url" placeholder="https://script.google.com/macros/s/..." style="width:100%;margin-bottom:0">
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace">Google Sheets → Extensions → Apps Script → Deploy → Web app URL</div>
+      </div>
+      <div class="field" style="margin-top:16px">
+        <label>SECRET TOKEN (protect Script URL)</label>
+        <input class="login-input" id="set-script-token" type="password" placeholder="Set any password..." style="width:100%;margin-bottom:0">
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace">Must match SECRET_TOKEN in your Apps Script</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeSettingsModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettingsForm()">Save & Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-logo">PMHVibes</div>
+      <div class="login-dot"></div>
+    </div>
+    <div class="login-tagline">Internal Business Dashboard</div>
+    <label class="login-label">Username</label>
+    <input class="login-input" id="login-user" type="text" placeholder="username" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    <label class="login-label">Password</label>
+    <input class="login-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-error" id="login-error">Invalid username or password</div>
+    <button class="login-btn" onclick="doLogin()">Sign in</button>
+    <div class="login-footer">Internal use only · PMHVibes</div>
+  </div>
+</div>
+
+<!-- ACCOUNT MANAGER MODAL -->
+<div class="modal-overlay" id="acct-modal" onclick="closeAcctModal(event)">
+  <div class="modal" style="width:560px">
+    <div class="modal-head">
+      <span class="modal-title">Account Management</span>
+      <button class="modal-close" onclick="closeAcctModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="acct-list"></div>
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px">Add New Account</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div>
+            <label class="login-label">USERNAME</label>
+            <input class="login-input" id="new-user" placeholder="username" style="margin-bottom:0">
+          </div>
+          <div>
+            <label class="login-label">PASSWORD</label>
+            <input class="login-input" id="new-pass" type="password" placeholder="••••••••" style="margin-bottom:0">
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label class="login-label">DISPLAY NAME</label>
+          <input class="login-input" id="new-name" placeholder="e.g. John Smith" style="margin-bottom:0">
+        </div>
+        <div style="margin-bottom:16px">
+          <label class="login-label">ROLE</label>
+          <select class="login-input" id="new-role" style="margin-bottom:8px;cursor:pointer" onchange="togglePermUI(this.value)">
+            <option value="admin">Admin — full access</option>
+            <option value="custom">Custom — choose sections</option>
+          </select>
+          <div id="perm-section" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px">
+            <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase">Section Access</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="perm-email" checked style="accent-color:var(--accent)"> Email Support
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="perm-templates" checked style="accent-color:var(--accent)"> Email Templates
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="perm-facebook" style="accent-color:var(--accent)"> Facebook Support
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="perm-orders" style="accent-color:var(--accent)"> Orders & Profit
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="perm-ads" style="accent-color:var(--accent)"> Ad Campaigns
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="perm-spy" style="accent-color:var(--accent)"> Product Spy
+              </label>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="addAccount()" style="width:100%;padding:10px">+ Add account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- THREAD MODAL -->
+<div class="modal-overlay" id="thread-modal" onclick="closeThreadModal(event)">
+  <div class="modal" style="width:680px">
+    <div class="modal-head">
+      <div>
+        <span class="modal-title" id="thread-title">Conversation</span>
+        <div style="font-size:11px;color:var(--muted2);margin-top:2px" id="thread-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeThreadModal()">×</button>
+    </div>
+    <div class="modal-body" id="thread-body" style="padding:0"></div>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div class="modal-overlay" id="tpl-modal" onclick="closeTplModal(event)">
+  <div class="modal" style="width:560px">
+    <div class="modal-head">
+      <span class="modal-title" id="tpl-modal-title">New Template</span>
+      <button class="modal-close" onclick="closeTplModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>TEMPLATE NAME</label>
+        <input class="field-val search-input" id="tpl-name" placeholder="e.g. Shipping delay apology" style="width:100%">
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label>CATEGORY</label>
+        <select class="field-val search-input" id="tpl-type" style="width:100%">
+          <option value="">General</option>
+          <option value="Shipping">Shipping</option>
+          <option value="Product Problems">Product Problems</option>
+          <option value="Refund/Dispute">Refund/Dispute</option>
+          <option value="Update Order">Update Order</option>
+          <option value="Cancel Order">Cancel Order</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label>CONTENT</label>
+        <textarea class="field-val" id="tpl-content" style="width:100%;min-height:260px;line-height:1.8;font-size:14px" placeholder="Write your template here...&#10;&#10;Hi [Name],&#10;&#10;Thank you for reaching out...&#10;&#10;Best regards,&#10;Customer Service Team — PMHVibes"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeTplModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTpl()">Save template</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW / EDIT MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-title">Email Details</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>FROM CUSTOMER</label>
+        <div class="field-val" id="modal-from"></div>
+      </div>
+      <div class="field">
+        <label>SUBJECT</label>
+        <div class="field-val" id="modal-subject"></div>
+      </div>
+      <div class="field">
+        <label>EMAIL CONTENT</label>
+        <div class="field-val" id="modal-body-content" style="line-height:1.7;white-space:pre-wrap;min-height:120px"></div>
+      </div>
+      <div class="field">
+        <label>DRAFT REPLY — edit freely, then click Send</label>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <select id="tpl-picker" onchange="applyTemplate(this.value)" style="flex:1;font-size:12px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface2);color:var(--muted);cursor:pointer;outline:none">
+            <option value="">📋 Use a template...</option>
+          </select>
+        </div>
+        <textarea class="field-val" id="modal-draft" style="min-height:340px;line-height:1.8;font-size:14px" placeholder="Write your reply here..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn" onclick="saveDraft()" style="border-color:var(--accent4);color:var(--accent4)">Save changes</button>
+      <button class="btn send" onclick="sendEmail()">✓ Confirm & Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EMAIL MODAL -->
+<div class="modal-overlay" id="add-modal" onclick="closeAddModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Add Email Manually</span>
+      <button class="modal-close" onclick="closeAddModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>CUSTOMER NAME</label>
+        <input class="field-val search-input" id="add-name" placeholder="John Smith" style="width:100%">
+      </div>
+      <div class="field">
+        <label>CUSTOMER EMAIL</label>
+        <input class="field-val search-input" id="add-email-addr" placeholder="customer@email.com" style="width:100%">
+      </div>
+      <div class="field">
+        <label>INBOX</label>
+        <select class="field-val search-input" id="add-account" style="width:100%">
+          <option>support@pmhvibes.com</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>SUBJECT</label>
+        <input class="field-val search-input" id="add-subject" placeholder="Where is my order?" style="width:100%">
+      </div>
+      <div class="field">
+        <label>EMAIL CONTENT</label>
+        <textarea class="field-val" id="add-body" style="width:100%;min-height:100px" placeholder="Customer email content..."></textarea>
+      </div>
+      <div class="field">
+        <label>ISSUE TYPE</label>
+        <select class="field-val search-input" id="add-type" style="width:100%">
+          <option>Shipping</option>
+          <option>Product Problems</option>
+          <option>Refund/Dispute</option>
+          <option>General</option>
+          <option>Update Order</option>
+          <option>Cancel Order</option>
+        </select>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addEmailManual()">Add to dashboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- SETTINGS ----
+function getSettings() {
+  const s = localStorage.getItem('pod_settings');
+  return s ? JSON.parse(s) : { sheetId: '', apiKey: '', scriptUrl: '', scriptToken: '' };
+}
+function saveSettings(s) { localStorage.setItem('pod_settings', JSON.stringify(s)); }
+
+function openSettingsModal() {
+  const s = getSettings();
+  document.getElementById('set-sheet-id').value = s.sheetId || '';
+  document.getElementById('set-api-key').value = s.apiKey || '';
+  document.getElementById('set-script-url').value = s.scriptUrl || '';
+  document.getElementById('set-script-token').value = s.scriptToken || '';
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettingsModal(evt) {
+  if (evt && evt.target !== document.getElementById('settings-modal')) return;
+  document.getElementById('settings-modal').classList.remove('open');
+}
+function saveSettingsForm() {
+  const sheetId = document.getElementById('set-sheet-id').value.trim();
+  const apiKey = document.getElementById('set-api-key').value.trim();
+  const scriptUrl = document.getElementById('set-script-url').value.trim();
+  const scriptToken = document.getElementById('set-script-token').value.trim();
+  if (!sheetId || !apiKey) { showToast('Please fill in Sheet ID and API Key'); return; }
+  saveSettings({ sheetId, apiKey, scriptUrl, scriptToken });
+  document.getElementById('settings-modal').classList.remove('open');
+  showToast('✓ Settings saved — loading emails...');
+  loadFromSheets();
+}
+
+// ---- DATA ----
+let emails = [];
+let currentFilter = 'all';
+let currentEmailId = null;
+let currentPage = 1;
+let selectedIds = new Set();
+let autoRefreshTimer = null;
+
+function startAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(() => {
+    loadFromSheets(true); // silent refresh
+  }, 5 * 60 * 1000); // 5 minutes
+}
+
+function getThreadEmails(threadId) {
+  if (!threadId) return [];
+  return emails.filter(e => e.threadId === threadId).sort((a,b) => new Date(a.rawTime) - new Date(b.rawTime));
+}
+
+// ---- GOOGLE SHEETS INTEGRATION ----
+async function loadFromSheets(silent = false) {
+  const { sheetId, apiKey } = getSettings();
+  if (!sheetId || !apiKey) {
+    if (!silent) showToast('⚙ Not configured — click Settings to enter Sheet ID and API Key');
+    renderEmails();
+    return;
+  }
+  try {
+    if (!silent) showToast('↻ Loading emails from Google Sheets...');
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1?key=${apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const err = await res.json();
+      if (!silent) showToast('Sheets connection error: ' + (err.error?.message || res.status));
+      return;
+    }
+    const data = await res.json();
+    const rows = data.values || [];
+    if (rows.length < 2) { if (!silent) showToast('No data found in Sheets'); renderEmails(); return; }
+    const headers = rows[0].map(h => h.toLowerCase().trim());
+    const idx = k => headers.indexOf(k);
+    const prevCount = emails.length;
+    emails = rows.slice(1).map((row, i) => ({
+      id: row[idx('id')] || `row_${i}`,
+      name: row[idx('from_name')] || '(Unknown)',
+      email: row[idx('from_email')] || '',
+      account: row[idx('account')] || '',
+      subject: row[idx('subject')] || '(No subject)',
+      body: row[idx('body')] || '',
+      type: row[idx('type')] || 'General',
+      draft: row[idx('draft_reply')] || '',
+      status: row[idx('status')] || 'new',
+      threadId: row[idx('thread_id')] || '',
+      time: row[idx('timestamp')] ? new Date(row[idx('timestamp')]).toLocaleString('en-US', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '--',
+      rawTime: row[idx('timestamp')] || '',
+      rowIndex: i + 2
+    })).reverse();
+    renderEmails();
+    if (silent) {
+      const newCount = emails.length - prevCount;
+      if (newCount > 0) showToast(`🔔 ${newCount} new email${newCount>1?'s':''} arrived`);
+    } else {
+      showToast(`✓ Loaded ${emails.length} emails from Google Sheets`);
+    }
+  } catch(e) {
+    showToast('Error: ' + e.message);
+    renderEmails();
+  }
+}
+
+async function updateSheetStatus(rowIndex, status) {
+  const { sheetId, apiKey, scriptUrl, scriptToken } = getSettings();
+  if (!sheetId || !apiKey) return;
+  const range = `Sheet1!J${rowIndex}`;
+  if (scriptUrl) {
+    try {
+      await fetch(`${scriptUrl}?row=${rowIndex}&status=${status}&token=${encodeURIComponent(scriptToken||'')}`, { method: 'GET' });
+      return;
+    } catch(e) { console.log('Apps Script error:', e); }
+  }
+  try {
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?valueInputOption=RAW&key=${apiKey}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: [[status]] })
+    });
+  } catch(e) { console.log('Could not update sheet status:', e); }
+}
+
+async function updateSheetDraft(rowIndex, draft) {
+  const { sheetId, apiKey, scriptUrl, scriptToken } = getSettings();
+  if (!sheetId || !apiKey) return;
+  const range = `Sheet1!I${rowIndex}`;
+  if (scriptUrl) {
+    try {
+      await fetch(`${scriptUrl}?row=${rowIndex}&draft=${encodeURIComponent(draft)}&token=${encodeURIComponent(scriptToken||'')}`, { method: 'GET' });
+      return;
+    } catch(e) { console.log('Apps Script draft error:', e); }
+  }
+  try {
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?valueInputOption=RAW&key=${apiKey}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: [[draft]] })
+    });
+  } catch(e) { console.log('Could not update sheet draft:', e); }
+}
+
+// ---- THREAD VIEW ----
+function openThread(threadId) {
+  const threadEmails = getThreadEmails(threadId);
+  if (threadEmails.length === 0) return;
+  const first = threadEmails[0];
+  document.getElementById('thread-title').textContent = first.subject.replace(/^(Re:|Fwd:)\s*/i,'');
+  document.getElementById('thread-sub').textContent = `${first.name} · ${threadEmails.length} message${threadEmails.length>1?'s':''}`;
+  document.getElementById('thread-body').innerHTML = threadEmails.map((e, i) => {
+    const isLatest = i === threadEmails.length - 1;
+    const label = e.label || (e.status === 'sent' ? 'sent' : 'unread');
+    const cleanBody = e.body.replace(/<[^>]+>/g,'').substring(0, 400);
+    const cleanDraft = e.draft
+      ? e.draft.replace(/<br\s*\/?>/gi,'\n').replace(/<\/p>/gi,'\n').replace(/<[^>]+>/g,'').trim().substring(0,300)
+      : '';
+    const idx = emails.indexOf(e);
+    return `
+    <div style="border-bottom:1px solid var(--border);padding:20px 28px;${isLatest?'background:#faf9f7':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <span style="font-weight:600;font-size:13px">${e.name}</span>
+          <span style="font-size:11px;color:var(--muted2);margin-left:8px">${e.email}</span>
+          <div style="margin-top:4px">${typePill(e.type)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:11px;color:var(--muted2)">${e.time}</div>
+          <div style="margin-top:4px">${statusPill(e.status)}</div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;margin-bottom:${cleanDraft?'12px':'0'}">${cleanBody}${e.body.length>400?'...':''}</div>
+      ${cleanDraft ? `
+        <div style="background:rgba(201,169,110,.06);border:1px solid rgba(201,169,110,.2);border-radius:8px;padding:12px 14px;margin-top:8px">
+          <div style="font-size:10px;color:var(--accent-dark);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Draft reply</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-wrap">${cleanDraft}${cleanDraft.length>=300?'...':''}</div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="action-btn" onclick="closeThreadModal();openModalByIndex(${idx})">Edit draft</button>
+            ${label !== 'sent' ? `<button class="action-btn send" onclick="closeThreadModal();quickSendByIndex(${idx})">✓ Send</button>` : ''}
+          </div>
+        </div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('thread-modal').classList.add('open');
+}
+
+function closeThreadModal(evt) {
+  if (evt && evt.target !== document.getElementById('thread-modal')) return;
+  document.getElementById('thread-modal').classList.remove('open');
+}
+
+// ---- TEMPLATES ----
+function getTemplates() {
+  const t = localStorage.getItem('pod_templates');
+  return t ? JSON.parse(t) : [];
+}
+function saveTemplates(tpls) { localStorage.setItem('pod_templates', JSON.stringify(tpls)); }
+
+let editingTplId = null;
+
+function openTplModal(id) {
+  editingTplId = id || null;
+  if (id !== undefined) {
+    const tpl = getTemplates().find(t => t.id === id);
+    if (tpl) {
+      document.getElementById('tpl-modal-title').textContent = 'Edit Template';
+      document.getElementById('tpl-name').value = tpl.name;
+      document.getElementById('tpl-type').value = tpl.type || '';
+      document.getElementById('tpl-content').value = tpl.content;
+    }
+  } else {
+    document.getElementById('tpl-modal-title').textContent = 'New Template';
+    document.getElementById('tpl-name').value = '';
+    document.getElementById('tpl-type').value = '';
+    document.getElementById('tpl-content').value = '';
+  }
+  document.getElementById('tpl-modal').classList.add('open');
+}
+function closeTplModal(evt) {
+  if (evt && evt.target !== document.getElementById('tpl-modal')) return;
+  document.getElementById('tpl-modal').classList.remove('open');
+}
+function saveTpl() {
+  const name = document.getElementById('tpl-name').value.trim();
+  const content = document.getElementById('tpl-content').value.trim();
+  if (!name || !content) { showToast('Please fill in name and content'); return; }
+  const tpls = getTemplates();
+  if (editingTplId) {
+    const idx = tpls.findIndex(t => t.id === editingTplId);
+    if (idx >= 0) tpls[idx] = { ...tpls[idx], name, type: document.getElementById('tpl-type').value, content };
+  } else {
+    tpls.push({ id: Date.now(), name, type: document.getElementById('tpl-type').value, content });
+  }
+  saveTemplates(tpls);
+  closeTplModal();
+  renderTemplates();
+  showToast('✓ Template saved');
+}
+function deleteTpl(id) {
+  if (!confirm('Delete this template?')) return;
+  saveTemplates(getTemplates().filter(t => t.id !== id));
+  renderTemplates();
+  showToast('Template deleted');
+}
+function renderTemplates() {
+  const tpls = getTemplates();
+  const grid = document.getElementById('tpl-grid');
+  if (!grid) return;
+  if (tpls.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted2)">
+      <div style="font-size:32px;opacity:.3;margin-bottom:12px">📋</div>
+      <div style="font-size:14px">No templates yet — click "+ New template" to add one</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = tpls.map(t => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div>
+          <div style="font-weight:500;font-size:14px;margin-bottom:4px">${t.name}</div>
+          ${t.type ? `<span style="font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:2px 8px;color:var(--muted)">${t.type}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="action-btn" onclick="openTplModal(${t.id})">Edit</button>
+          <button class="action-btn" onclick="deleteTpl(${t.id})" style="color:var(--accent2);border-color:rgba(224,92,92,.3)">Delete</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;border-top:1px solid var(--border);padding-top:10px;white-space:pre-wrap">${t.content.substring(0,150)}${t.content.length>150?'...':''}</div>
+    </div>
+  `).join('');
+}
+function populateTemplatePicker() {
+  const sel = document.getElementById('tpl-picker');
+  if (!sel) return;
+  const tpls = getTemplates();
+  sel.innerHTML = '<option value="">📋 Use a template...</option>' +
+    tpls.map(t => `<option value="${t.id}">${t.name}${t.type?' ('+t.type+')':''}</option>`).join('');
+}
+function applyTemplate(id) {
+  if (!id) return;
+  const tpl = getTemplates().find(t => t.id == id);
+  if (!tpl) return;
+  if (document.getElementById('modal-draft').value.trim()) {
+    if (!confirm('Replace current draft with this template?')) {
+      document.getElementById('tpl-picker').value = '';
+      return;
+    }
+  }
+  document.getElementById('modal-draft').value = tpl.content;
+  document.getElementById('tpl-picker').value = '';
+  showToast(`✓ Template applied: ${tpl.name}`);
+}
+function setLabelSingle(idx, label) {
+  const e = emails[idx];
+  if (!e) return;
+  e.label = label;
+  if (label === 'sent') {
+    e.status = 'sent';
+    updateSheetStatus(e.rowIndex, 'sent');
+  }
+  renderEmails();
+}
+
+function toggleRow(idx, cb) {
+  if (cb.checked) selectedIds.add(idx);
+  else selectedIds.delete(idx);
+  updateBulkBar();
+  const row = document.getElementById(`row-${idx}`);
+  if (row) row.classList.toggle('selected', cb.checked);
+}
+
+function toggleAll(cb) {
+  const checkboxes = document.querySelectorAll('#email-tbody input[type=checkbox]');
+  checkboxes.forEach(c => {
+    const idx = parseInt(c.getAttribute('onchange').match(/\d+/)[0]);
+    if (cb.checked) selectedIds.add(idx);
+    else selectedIds.delete(idx);
+    c.checked = cb.checked;
+    const row = document.getElementById(`row-${idx}`);
+    if (row) row.classList.toggle('selected', cb.checked);
+  });
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const count = document.getElementById('bulk-count');
+  if (selectedIds.size > 0) {
+    bar.style.display = 'flex';
+    count.textContent = `${selectedIds.size} selected`;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  document.querySelectorAll('#email-tbody input[type=checkbox]').forEach(c => c.checked = false);
+  document.querySelectorAll('#email-tbody tr').forEach(r => r.classList.remove('selected'));
+  const ca = document.getElementById('check-all');
+  if (ca) ca.checked = false;
+  updateBulkBar();
+}
+
+async function bulkSend() {
+  const ids = [...selectedIds];
+  if (ids.length === 0) return;
+  if (!confirm(`Send ${ids.length} email${ids.length>1?'s':''}? They will be sent one by one.`)) return;
+  let sent = 0;
+  for (const idx of ids) {
+    const e = emails[idx];
+    if (e && e.label !== 'sent') {
+      e.status = 'sent';
+      e.label = 'sent';
+      await updateSheetStatus(e.rowIndex, 'sent');
+      sent++;
+      showToast(`↻ Sending ${sent}/${ids.length} — ${e.name}`);
+      await new Promise(r => setTimeout(r, 1200));
+    }
+  }
+  selectedIds.clear();
+  renderEmails();
+  showToast(`✓ All ${sent} emails sent successfully`);
+}
+
+function setEmailFolder(folder, el) {
+  // Navigate to email page first if not there
+  const emailPage = document.getElementById('page-email');
+  if (!emailPage.classList.contains('active')) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    emailPage.classList.add('active');
+    document.getElementById('page-title').textContent = 'Email Support';
+  }
+  currentFilter = folder;
+  currentPage = 1;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  // Also sync tab filter buttons
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  renderEmails();
+}
+
+function bulkDelete() {
+  if (!confirm(`Move ${selectedIds.size} email(s) to Trash?`)) return;
+  selectedIds.forEach(idx => {
+    const e = emails[idx];
+    if (e) e.deleted = true;
+  });
+  selectedIds.clear();
+  renderEmails();
+  showToast('🗑 Moved to Trash');
+}
+
+function restoreFromTrash(idx) {
+  const e = emails[idx];
+  if (e) { e.deleted = false; renderEmails(); showToast('✓ Restored from Trash'); }
+}
+
+function permanentDelete(idx) {
+  if (!confirm('Permanently delete this email?')) return;
+  emails.splice(idx, 1);
+  renderEmails();
+  showToast('Deleted permanently');
+}
+
+function bulkSetLabel(label) {
+  selectedIds.forEach(idx => {
+    const e = emails[idx];
+    if (e) { e.label = label; if (label === 'sent') { e.status = 'sent'; updateSheetStatus(e.rowIndex, 'sent'); } }
+  });
+  selectedIds.clear();
+  renderEmails();
+  showToast(`✓ Updated to ${label}`);
+}
+
+// ---- RENDER ----
+function statusPill(s) {
+  const map = {
+    new:'<span class="pill pill-new">New</span>',
+    urgent:'<span class="pill pill-urgent">New</span>',
+    reviewed:'<span class="pill pill-reviewed">Reviewed</span>',
+    sent:'<span class="pill pill-sent">Sent</span>'
+  };
+  return map[s] || '<span class="pill pill-new">New</span>';
+}
+
+function typePill(t) {
+  const map = {
+    'Shipping':        { bg:'#74b9ff18', color:'#4a90c4', border:'#74b9ff33' },
+    'Product Problems':{ bg:'#ffd16618', color:'#b8860b', border:'#ffd16633' },
+    'Refund/Dispute':  { bg:'#ff6b6b22', color:'#c0392b', border:'#ff6b6b55' },
+    'General':         { bg:'#a29bfe18', color:'#6c5ce7', border:'#a29bfe33' },
+    'Update Order':    { bg:'#ffd16622', color:'#b8860b', border:'#ffd16655' },
+    'Cancel Order':    { bg:'#fd79a822', color:'#c0392b', border:'#fd79a855' },
+  };
+  const s = map[t];
+  if (!s) return `<span class="pill" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);font-size:9px">${t||'—'}</span>`;
+  const extra = (t === 'Refund/Dispute' || t === 'Cancel Order') ? 'font-weight:600;' : '';
+  return `<span class="pill" style="background:${s.bg};color:${s.color};border:1px solid ${s.border};font-size:9px;${extra}">${t}</span>`;
+}
+
+function renderEmails() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const acc = document.getElementById('filter-account').value;
+  const st = document.getElementById('filter-status').value;
+  const tp = document.getElementById('filter-type').value;
+
+  // Update account filter dropdown dynamically
+  const accounts = [...new Set(emails.map(e => e.account).filter(Boolean))];
+  const accSel = document.getElementById('filter-account');
+  const curVal = accSel.value;
+  accSel.innerHTML = '<option value="">All inboxes</option>' + accounts.map(a => `<option ${a===curVal?'selected':''}>${a}</option>`).join('');
+
+  const filtered = emails.filter(e => {
+    const label = e.label || (e.status === 'sent' ? 'sent' : 'unread');
+    const matchQ = !q || (e.name||'').toLowerCase().includes(q) || (e.subject||'').toLowerCase().includes(q) || (e.email||'').toLowerCase().includes(q);
+    const matchAcc = !acc || e.account === acc;
+    const matchSt = !st || e.status === st;
+    const matchTp = !tp || (e.type||'') === tp;
+    // Trash filter
+    if (currentFilter === 'trash') return e.deleted === true;
+    if (e.deleted) return false;
+    let matchFilter = true;
+    if (currentFilter === 'unread') matchFilter = label === 'unread';
+    else if (currentFilter === 'tracking') matchFilter = label === 'tracking';
+    else if (currentFilter === 'sent') matchFilter = label === 'sent';
+    else if (currentFilter === 'cancel') matchFilter = e.type === 'Cancel Order';
+    else if (currentFilter === 'update') matchFilter = e.type === 'Update Order';
+    else if (currentFilter === 'refund') matchFilter = e.type === 'Refund/Dispute';
+    else if (currentFilter === 'general') matchFilter = e.type === 'General';
+    return matchQ && matchAcc && matchSt && matchTp && matchFilter;
+  });
+
+  // ---- GROUP BY THREAD ----
+  const seenThreads = new Set();
+  const grouped = [];
+  filtered.forEach(e => {
+    if (e.threadId) {
+      if (!seenThreads.has(e.threadId)) {
+        seenThreads.add(e.threadId);
+        const threadEmails = filtered.filter(x => x.threadId === e.threadId)
+          .sort((a,b) => new Date(a.rawTime) - new Date(b.rawTime)); // oldest first
+        const oldest = threadEmails[0];
+        const newest = threadEmails[threadEmails.length - 1];
+        const rep = {
+          ...newest,                          // base: email mới nhất (time, label, status)
+          subject: oldest.subject,            // subject: email đầu tiên
+          type: oldest.type,                  // type: email đầu tiên
+          draft: newest.draft,                // draft: email mới nhất
+          name: oldest.name,
+          email: oldest.email,
+          _threadAll: threadEmails,
+          _threadCount: threadEmails.length,
+          _sendTarget: threadEmails.slice().reverse().find(x => (x.label || (x.status==='sent'?'sent':'unread')) !== 'sent')
+        };
+        grouped.push(rep);
+      }
+    } else {
+      grouped.push(e);
+    }
+  });
+
+  // Pagination dựa trên grouped
+  const PAGE_SIZE = 10;
+  const totalPages = Math.max(1, Math.ceil(grouped.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = grouped.slice(start, start + PAGE_SIZE);
+
+  const tbody = document.getElementById('email-tbody');
+  tbody.innerHTML = pageItems.map((e) => {
+    const isDispute = e.type === 'Refund/Dispute' || e.type === 'Cancel Order';
+    const isUpdate = e.type === 'Update Order';
+    const label = e.label || (e.status === 'sent' ? 'sent' : 'unread');
+    const isUnread = label === 'unread';
+    let rowBg = '';
+    if (isDispute) rowBg = 'background:rgba(255,107,107,0.05);';
+    else if (isUpdate) rowBg = 'background:rgba(255,209,102,0.08);';
+    const idx = emails.indexOf(emails.find(x => x.id === e.id));
+    const checked = selectedIds.has(idx);
+    const threadCount = e._threadCount || 0;
+    const nameColor = isDispute ? 'color:#b83c3c' : isUpdate ? 'color:#8a6800' : '';
+    const sendTarget = e._sendTarget || (label !== 'sent' ? e : null);
+    const sendIdx = sendTarget ? emails.indexOf(emails.find(x => x.id === sendTarget.id)) : -1;
+
+    return `
+    <tr style="${rowBg}" class="${checked?'selected':''}" id="row-${idx}">
+      <td style="width:36px"><input type="checkbox" ${checked?'checked':''} onchange="toggleRow(${idx},this)"></td>
+      <td style="padding:10px 22px;overflow:hidden">
+        <div style="display:flex;align-items:baseline;gap:6px;overflow:hidden">
+          <span style="font-weight:${isUnread?'600':'400'};font-size:13px;${nameColor};white-space:nowrap;flex-shrink:0">${e.name}</span>
+          ${threadCount > 1 ? `<span style="font-size:11px;color:#6c5ce7;flex-shrink:0;font-weight:500;background:rgba(162,155,254,.12);border-radius:20px;padding:1px 6px">${threadCount}</span>` : ''}
+          <span style="font-size:12px;color:${isUnread?'var(--text)':'var(--muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.subject.replace(/^(Re:|Fwd:)\s*/i,'')}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.email} · ${e.account} · ${e.time}</div>
+      </td>
+      <td style="padding:10px 22px;white-space:nowrap">${typePill(e.type)}</td>
+      <td style="padding:10px 22px;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(e.draft||'').replace(/<[^>]*>/g,'').substring(0,60)}...</td>
+      <td style="padding:10px 22px">
+        <select onchange="setLabelSingle(${idx},this.value)" style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--surface2);color:var(--text);cursor:pointer;outline:none">
+          <option value="unread" ${label==='unread'?'selected':''}>Unread</option>
+          <option value="tracking" ${label==='tracking'?'selected':''}>Tracking</option>
+          <option value="sent" ${label==='sent'?'selected':''}>Sent</option>
+        </select>
+      </td>
+      <td style="padding:10px 22px">
+        <div class="action-btns">
+          ${threadCount > 1 ? `<button class="action-btn" onclick="openThread('${e.threadId}')" style="border-color:#a29bfe;color:#6c5ce7">💬 ${threadCount}</button>` : ''}
+          ${e.deleted ? `<button class="action-btn" onclick="restoreFromTrash(${idx})">↩ Restore</button>` : `<button class="action-btn" onclick="openModalByIndex(${idx})">View / Edit</button>`}
+          ${!e.deleted && sendIdx >= 0 ? `<button class="action-btn send" onclick="quickSendByIndex(${sendIdx})">✓ Send</button>` : ''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Render pagination controls
+  document.getElementById('page-info').textContent = `${grouped.length} thread${grouped.length!==1?'s':''} · page ${currentPage}/${totalPages}`;
+  const pageBtns = document.getElementById('page-btns');
+  let btns = '';
+  btns += `<button class="filter-btn" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled style="opacity:.4;cursor:default"':''}>← Prev</button>`;
+  for (let p = 1; p <= totalPages; p++) {
+    if (totalPages <= 7 || p===1 || p===totalPages || Math.abs(p-currentPage)<=1) {
+      btns += `<button class="filter-btn ${p===currentPage?'active':''}" onclick="gotoPage(${p})">${p}</button>`;
+    } else if (Math.abs(p-currentPage)===2) {
+      btns += `<span style="color:var(--muted);padding:0 4px;font-size:12px">…</span>`;
+    }
+  }
+  btns += `<button class="filter-btn" onclick="gotoPage(${currentPage+1})" ${currentPage===totalPages?'disabled style="opacity:.4;cursor:default"':''}>Sau →</button>`;
+  pageBtns.innerHTML = btns;
+
+  updateStats();
+}
+
+function updateStats() {
+  const total = emails.length;
+  const unread = emails.filter(e => e.status === 'new' || e.status === 'urgent').length;
+  const read = emails.filter(e => e.status === 'reviewed').length;
+  const sent = emails.filter(e => e.status === 'sent').length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-new').textContent = unread;
+  document.getElementById('stat-reviewed').textContent = read;
+  document.getElementById('stat-sent').textContent = sent;
+  document.getElementById('badge-email').textContent = unread;
+  if(unread === 0) document.getElementById('badge-email').style.display = 'none';
+  else document.getElementById('badge-email').style.display = '';
+}
+
+function filterEmails() { currentPage = 1; renderEmails(); }
+
+function gotoPage(p) {
+  currentPage = p;
+  renderEmails();
+  document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  currentPage = 1;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderEmails();
+}
+
+// ---- MODALS ----
+function openModalByIndex(idx) {
+  const e = emails[idx];
+  if(!e) return;
+  currentEmailId = idx;
+  document.getElementById('modal-title').textContent = `Email from ${e.name}`;
+  document.getElementById('modal-from').textContent = `${e.name} <${e.email}> → ${e.account}`;
+  document.getElementById('modal-subject').textContent = e.subject;
+  document.getElementById('modal-body-content').textContent = e.body;
+  // Extract draft content — handle both "DRAFT:\n..." format and plain HTML
+  let rawDraft = e.draft || '';
+  const draftMatch = rawDraft.match(/DRAFT:\s*([\s\S]+)/i);
+  if (draftMatch) rawDraft = draftMatch[1].trim();
+  // Strip HTML tags to plain text for easy editing
+  const cleanDraft = rawDraft
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<p>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  document.getElementById('modal-draft').value = cleanDraft;
+  document.getElementById('modal').classList.add('open');
+  populateTemplatePicker();
+}
+
+function openModal(id) {
+  const idx = emails.findIndex(x => x.id === id);
+  if(idx >= 0) openModalByIndex(idx);
+}
+
+function closeModal(evt) {
+  if(evt && evt.target !== document.getElementById('modal')) return;
+  document.getElementById('modal').classList.remove('open');
+  currentEmailId = null;
+}
+
+function saveDraft() {
+  if(currentEmailId === null) return;
+  const e = emails[currentEmailId];
+  if(!e) return;
+  const plainText = document.getElementById('modal-draft').value;
+  const htmlDraft = plainText.split('\n\n').filter(p => p.trim()).map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+  e.draft = htmlDraft;
+  if(e.status === 'new' || e.status === 'urgent') {
+    e.status = 'reviewed';
+    updateSheetStatus(e.rowIndex, 'reviewed');
+  }
+  updateSheetDraft(e.rowIndex, htmlDraft);
+  renderEmails();
+  document.getElementById('modal').classList.remove('open');
+  showToast('✓ Draft saved');
+}
+
+function sendEmail() {
+  if(currentEmailId === null) return;
+  const e = emails[currentEmailId];
+  if(!e) return;
+  const plainText = document.getElementById('modal-draft').value;
+  const htmlDraft = plainText.split('\n\n').filter(p => p.trim()).map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+  e.draft = htmlDraft;
+  e.status = 'sent';
+  e.label = 'sent';
+  updateSheetDraft(e.rowIndex, htmlDraft);
+  updateSheetStatus(e.rowIndex, 'sent');
+  renderEmails();
+  document.getElementById('modal').classList.remove('open');
+  showToast(`✓ Email sent to ${e.name}`);
+}
+
+function quickSendByIndex(idx) {
+  const e = emails[idx];
+  if(!e) return;
+  if(!confirm(`Send draft reply to ${e.name}?`)) return;
+  e.status = 'sent';
+  e.label = 'sent';
+  updateSheetStatus(e.rowIndex, 'sent');
+  renderEmails();
+  showToast(`✓ Email sent to ${e.name}`);
+}
+
+function quickSend(id) {
+  const idx = emails.findIndex(x => x.id === id);
+  if(idx >= 0) quickSendByIndex(idx);
+}
+
+function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
+function closeAddModal(evt) {
+  if(evt && evt.target !== document.getElementById('add-modal')) return;
+  document.getElementById('add-modal').classList.remove('open');
+}
+
+function addEmailManual() {
+  const name = document.getElementById('add-name').value.trim();
+  const email = document.getElementById('add-email-addr').value.trim();
+  if(!name || !email) { alert('Please enter customer name and email'); return; }
+  const newEmail = {
+    id: Date.now(),
+    name, email,
+    account: document.getElementById('add-account').value,
+    subject: document.getElementById('add-subject').value || '(No subject)',
+    type: document.getElementById('add-type').value,
+    status: 'new',
+    body: document.getElementById('add-body').value,
+    draft: '(Draft reply will be generated by AI via Zapier)',
+    time: new Date().toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'})
+  };
+  emails.unshift(newEmail);
+  renderEmails();
+  document.getElementById('add-modal').classList.remove('open');
+  ['add-name','add-email-addr','add-subject','add-body'].forEach(id => document.getElementById(id).value = '');
+  showToast('Email added to dashboard');
+}
+
+// ---- NAVIGATION ----
+function goto(page, el) {
+  if (!canAccess(page)) { showToast('⛔ You do not have access to this section'); return; }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  const titles = { email:'Email Support', templates:'Email Templates', orders:'Orders & Profit', facebook:'Facebook Support', spy:'Product Spy', ads:'Ad Campaigns' };
+  document.getElementById('page-title').textContent = titles[page] || page;
+  if (page === 'templates') renderTemplates();
+}
+
+function syncEmails() { loadFromSheets(); }
+
+// ---- TOAST ----
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:12px 18px;border-radius:10px;font-size:13px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:fadeIn .2s ease`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ---- AUTH ----
+const DEFAULT_ACCOUNTS = [
+  { user: 'admin', pass: 'pod2024!', name: 'Admin', role: 'admin' }
+];
+
+function getAccounts() {
+  const stored = localStorage.getItem('pod_accounts');
+  return stored ? JSON.parse(stored) : DEFAULT_ACCOUNTS;
+}
+function saveAccounts(accs) { localStorage.setItem('pod_accounts', JSON.stringify(accs)); }
+
+function getSession() { return localStorage.getItem('pod_session'); }
+function setSession(user) { localStorage.setItem('pod_session', user); }
+function clearSession() { localStorage.removeItem('pod_session'); }
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const accounts = getAccounts();
+  const found = accounts.find(a => a.user === user && a.pass === pass);
+  if (found) {
+    setSession(user);
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('login-error').classList.remove('show');
+    updateSidebarUser(found);
+    loadFromSheets();
+    startAutoRefresh();
+  } else {
+    document.getElementById('login-error').classList.add('show');
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+function doLogout() {
+  clearSession();
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+function updateSidebarUser(acct) {
+  const initials = acct.name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('sidebar-avatar').textContent = initials;
+  document.getElementById('sidebar-name').textContent = acct.name;
+  document.getElementById('sidebar-role').textContent = acct.role === 'admin' ? 'Admin' : 'Custom';
+  // Show/hide account manager button
+  if (acct.role !== 'admin') document.getElementById('btn-manage-acct').style.display = 'none';
+  else document.getElementById('btn-manage-acct').style.display = '';
+  // Apply page permissions to nav items
+  const perms = acct.perms || ['email','templates','facebook','orders','ads','spy'];
+  const navMap = {
+    email: 'nav-email', templates: 'nav-templates', facebook: 'nav-facebook',
+    orders: 'nav-orders', ads: 'nav-ads', spy: 'nav-spy'
+  };
+  Object.entries(navMap).forEach(([page, navId]) => {
+    const el = document.getElementById(navId);
+    if (el) el.style.display = (acct.role === 'admin' || perms.includes(page)) ? '' : 'none';
+  });
+}
+
+function canAccess(page) {
+  const sessionUser = getSession();
+  if (!sessionUser) return false;
+  const acct = getAccounts().find(a => a.user === sessionUser);
+  if (!acct) return false;
+  if (acct.role === 'admin') return true;
+  const perms = acct.perms || [];
+  return perms.includes(page);
+}
+
+function checkSession() {
+  const sessionUser = getSession();
+  if (sessionUser) {
+    const accounts = getAccounts();
+    const found = accounts.find(a => a.user === sessionUser);
+    if (found) {
+      document.getElementById('login-screen').classList.add('hidden');
+      updateSidebarUser(found);
+      startAutoRefresh();
+      return;
+    }
+  }
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+// ---- ACCOUNT MANAGER ----
+function openAcctModal() {
+  renderAcctList();
+  document.getElementById('acct-modal').classList.add('open');
+}
+function closeAcctModal(evt) {
+  if (evt && evt.target !== document.getElementById('acct-modal')) return;
+  document.getElementById('acct-modal').classList.remove('open');
+}
+
+function renderAcctList() {
+  const accounts = getAccounts();
+  const sessionUser = getSession();
+  const pageLabels = { email:'Email', templates:'Templates', facebook:'Facebook', orders:'Orders', ads:'Ads', spy:'Spy' };
+  document.getElementById('acct-list').innerHTML = accounts.map(a => {
+    const perms = a.perms || ['email','templates','facebook','orders','ads','spy'];
+    const permBadges = a.role === 'admin'
+      ? '<span style="font-size:10px;color:var(--accent-dark);background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.3);border-radius:20px;padding:2px 8px">Full access</span>'
+      : perms.map(p => `<span style="font-size:10px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:2px 7px">${pageLabels[p]||p}</span>`).join('');
+    return `
+    <div class="acct-row" style="flex-wrap:wrap;gap:8px">
+      <div class="acct-avatar">${a.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}</div>
+      <div class="acct-info" style="flex:1;min-width:160px">
+        <div class="acct-name">${a.name} ${a.user === sessionUser ? '<span style="font-size:10px;color:var(--accent)">(you)</span>' : ''}</div>
+        <div class="acct-role" style="margin-bottom:6px">@${a.user} · ${a.role === 'admin' ? 'Admin' : 'Custom'}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${permBadges}</div>
+      </div>
+      ${a.user !== sessionUser ? `<button class="acct-del" onclick="deleteAccount('${a.user}')">Delete</button>` : '<span style="font-size:11px;color:var(--muted2)">active</span>'}
+    </div>`;
+  }).join('');
+}
+
+function togglePermUI(role) {
+  document.getElementById('perm-section').style.display = role === 'custom' ? 'block' : 'none';
+}
+
+function addAccount() {
+  const user = document.getElementById('new-user').value.trim();
+  const pass = document.getElementById('new-pass').value;
+  const name = document.getElementById('new-name').value.trim();
+  const role = document.getElementById('new-role').value;
+  if (!user || !pass || !name) { showToast('Please fill in all fields'); return; }
+  const accounts = getAccounts();
+  if (accounts.find(a => a.user === user)) { showToast('Username already exists'); return; }
+  const allPages = ['email','templates','facebook','orders','ads','spy'];
+  const perms = role === 'custom'
+    ? allPages.filter(p => document.getElementById('perm-'+p)?.checked)
+    : allPages;
+  accounts.push({ user, pass, name, role, perms });
+  saveAccounts(accounts);
+  renderAcctList();
+  ['new-user','new-pass','new-name'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('new-role').value = 'admin';
+  togglePermUI('admin');
+  showToast(`✓ Account added: @${user}`);
+}
+
+function deleteAccount(user) {
+  if (!confirm(`Delete account @${user}?`)) return;
+  const accounts = getAccounts().filter(a => a.user !== user);
+  saveAccounts(accounts);
+  renderAcctList();
+  showToast(`Account deleted: @${user}`);
+}
+
+// ---- INIT ----
+checkSession();
+// Only load sheets if already logged in
+if(getSession()) loadFromSheets();
+</script>
+</body>
+</html>
